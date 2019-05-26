@@ -51,9 +51,9 @@ class Samok:
                 self.AnimateWin(endgame-1)
 
             if endgame == 1:
-                tkinter.messagebox.showinfo('승리', 'o가 승리하였습니다')
+                tkinter.messagebox.showinfo('승리', 'x가 이겼습니다!')
             elif endgame == 2:
-                tkinter.messagebox.showinfo('승리', 'x가 승리하였습니다')
+                tkinter.messagebox.showinfo('승리', 'o가 이겼습니다!')
             elif endgame == 3:
                 tkinter.messagebox.showinfo('비김', '비겼습니다')
 

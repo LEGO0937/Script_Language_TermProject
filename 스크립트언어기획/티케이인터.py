@@ -9,8 +9,8 @@ import json
 from xml.etree import ElementTree
 
 import tkinter.messagebox
-g_Tk = Tk()
-g_Tk.geometry("800x650+500+100")
+g_Tk = Tk("관광자원 프로그램")
+g_Tk.geometry("950x750+500+100")
 DataList = []
 
 def InitTopText():
@@ -32,7 +32,7 @@ def gungu_click():
     RenderText1.place_forget()
     TempFont = font.Font(g_Tk, size=10, family='Consolas')
     RenderText1 = Listbox(g_Tk, width=49, height=22, borderwidth=12,
-                       relief='ridge', font=TempFont)
+                          relief='ridge')  # , yscrollcommand=RenderTextScrollbar.set
     RenderText1.place(x=10, y=215)
 
     for i in range(len(DataList)):
@@ -55,29 +55,29 @@ def InitSido():
     TempFont1 = font.Font(g_Tk, size=10, weight='bold', family='Consolas')
 
     ComboBox = tkinter.ttk.Combobox(g_Tk, font=TempFont, width=10, height=15, values = sido, textvariable = str)
-    Click_button = Button(text="선택", command = sido_click, font=TempFont1)
+    #Click_button = Button(text="선택", command = sido_click, font=TempFont1)
     ComboBox.pack()
     ComboBox.place(x=20,y=50)
-    Click_button.pack()
-    Click_button.place(x=170, y =50)
+    # Click_button.pack()
+    # Click_button.place(x=190, y =50)
     ComboBox.set("시도검색")
 
 
 
     ComboBox1 = tkinter.ttk.Combobox(g_Tk, font=TempFont, width=10, height=15, values=gungu[0], textvariable = str1)
-    Click_button1 = Button(text="선택", command=gungu_click, font=TempFont1)
+    Click_button1 = Button(text="리스트 검색", command=gungu_click, font=TempFont1)
     ComboBox1.pack()
     ComboBox1.place(x=20, y=100)
     Click_button1.pack()
-    Click_button1.place(x=170, y=100)
-    ComboBox1.set("시군구검색")
+    Click_button1.place(x=190, y=100)
+    ComboBox1.set("군구검색")
 
 
 
 def InitInputLabel():
     global InputLabel
     TempFont = font.Font(g_Tk, size=15, weight='bold', family='Consolas')
-    InputLabel = Entry(g_Tk, font=TempFont, width=26, borderwidth=12, relief='ridge')
+    InputLabel = Entry(g_Tk, font=TempFont, width=23, borderwidth=12, relief='ridge')
     InputLabel.pack()
     InputLabel.place(x=10, y=150)
 
@@ -86,7 +86,7 @@ def InitSearchButton():
     TempFont = font.Font(g_Tk, size=14, weight='bold', family = 'Consolas')
     SearchButton = Button(g_Tk, font = TempFont, text="검색",  command=SearchButtonAction)
     SearchButton.pack()
-    SearchButton.place(x=330, y=155)
+    SearchButton.place(x=360, y=155)
 
 def Search_TourPlace():
     conn = http.client.HTTPConnection("openapi.tour.go.kr")
@@ -138,11 +138,11 @@ def InitSearchList():
     TempFont = font.Font(g_Tk, size=12, weight='bold', family='Consolas')
     PageButton1 = Button(g_Tk, font=TempFont, text="◀", command=Going_Prev_Page)
     PageButton1.pack()
-    PageButton1.place(x=30, y=600)
+    PageButton1.place(x=50, y=710)
 
     PageButton2 = Button(g_Tk, font=TempFont, text="▶", command=Going_Next_Page)
     PageButton2.pack()
-    PageButton2.place(x=330, y=600)
+    PageButton2.place(x=350, y=710)
 
 
 def Going_Prev_Page():
@@ -157,13 +157,13 @@ def InitDetailExplain():
     # RenderTextScrollbar.pack()
     # RenderTextScrollbar.place(x=375, y=200)
     TempFont = font.Font(g_Tk, size=10, family='Consolas')
-    RenderText = Text(g_Tk, width=49, height=40, borderwidth=12,
+    RenderText = Text(g_Tk, width=49, height=35, borderwidth=12,
                          relief='ridge', font = TempFont)  # , yscrollcommand=RenderTextScrollbar.set)
 
     for i in range(len(DataList)):
         RenderText.insert(i, DataList[i]["이름"])
 
-    RenderText.place(x=400, y=10)
+    RenderText.place(x=450, y=10)
     # RenderTextScrollbar.config(command=RenderText.yview)
     # RenderTextScrollbar.pack(side=RIGHT, fill=BOTH)
 
