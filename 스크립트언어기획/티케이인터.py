@@ -1,188 +1,185 @@
-# -*- coding: utf-8 -*-
+from tkinter import *
+from tkinter import font
+import tkinter.ttk
+import http.client
+import urllib.parse
+from tkinter import messagebox
+
+import json
+from xml.etree import ElementTree
+
+import tkinter.messagebox
+g_Tk = Tk()
+g_Tk.geometry("800x650+500+100")
+DataList = []
+
+def InitTopText():
+    TempFont = font.Font(g_Tk, size=20, weight='bold', family = 'Consolas')
+    MainText = Label(g_Tk, font = TempFont, text="관광자원 프로그램")
+    MainText.pack()
+    MainText.place(x=20)
+
+def sido_click():
+    #print(str.get())
+    pass
 
 
-# Created by: PyQt5 UI code generator 5.6
-#
-# WARNING! All changes made in this file will be lost!
+def gungu_click():
+    global RenderText1
+    Search_TourPlace()
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-#import buttonSettingFunc
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.resize(837, 539)
-        MainWindow.setObjectName("MainWindow")
+    RenderText1.place_forget()
+    TempFont = font.Font(g_Tk, size=10, family='Consolas')
+    RenderText1 = Listbox(g_Tk, width=49, height=22, borderwidth=12,
+                       relief='ridge', font=TempFont)
+    RenderText1.place(x=10, y=215)
 
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
+    for i in range(len(DataList)):
+        RenderText1.insert(i, DataList[i]["이름"])
 
-        self.verticalLayoutWidget_3 = QtWidgets.QWidget(self.centralwidget)
-        self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(10, 10, 321, 221))
-        self.verticalLayoutWidget_3.setObjectName("verticalLayoutWidget_3")
 
-        self.SearchLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_3)
-        self.SearchLayout.setContentsMargins(0, 0, 0, 0)
-        self.SearchLayout.setObjectName("SearchLayout")
+def InitSido():
+    sido = ['서울특별시', '인천광역시', '부산광역시']
 
-        self.groupBox_2 = QtWidgets.QGroupBox(self.verticalLayoutWidget_3)
-        self.groupBox_2.setObjectName("groupBox_2")
+    gungu = [['중구', '종로구', '용산구', '성동구', '광진구', '동대문구', '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구'],
+             ['중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구', '해운대구', '사하구', '금정구', '강서구'],
+             ['중구', '동구', '남구', '연수구', '남동구', '부평구', '계양구', '서구', '강화군', '옹진군']]
 
-        self.label_Service = QtWidgets.QLabel(self.groupBox_2)
-        self.label_Service.setGeometry(QtCore.QRect(10, 20, 71, 21))
-        self.label_Service.setObjectName("label_Service")
+    global str
+    global str1
+    str = StringVar()
+    str1 = StringVar()
 
-        self.comboBox_smallService = QtWidgets.QComboBox(self.groupBox_2)
-        self.comboBox_smallService.setGeometry(QtCore.QRect(80, 60, 231, 21))
-        self.comboBox_smallService.setObjectName("comboBox_smallService")
+    TempFont = font.Font(g_Tk, size=15, weight='bold', family='Consolas')
+    TempFont1 = font.Font(g_Tk, size=10, weight='bold', family='Consolas')
 
-        self.label_City = QtWidgets.QLabel(self.groupBox_2)
-        self.label_City.setGeometry(QtCore.QRect(40, 140, 41, 21))
-        self.label_City.setObjectName("label_City")
-
-        self.comboBox_Area = QtWidgets.QComboBox(self.groupBox_2)
-        self.comboBox_Area.setGeometry(QtCore.QRect(80, 100, 231, 21))
-        self.comboBox_Area.setObjectName("comboBox_Area")
-
-        self.comboBox_Service = QtWidgets.QComboBox(self.groupBox_2)
-        self.comboBox_Service.setGeometry(QtCore.QRect(80, 20, 151, 21))
-        self.comboBox_Service.setAcceptDrops(False)
-        self.comboBox_Service.setObjectName("comboBox_Service")
-
-        self.label_Area = QtWidgets.QLabel(self.groupBox_2)
-        self.label_Area.setGeometry(QtCore.QRect(50, 100, 31, 21))
-        self.label_Area.setObjectName("label_Area")
-
-        self.comboBox_City = QtWidgets.QComboBox(self.groupBox_2)
-        self.comboBox_City.setGeometry(QtCore.QRect(80, 140, 231, 21))
-        self.comboBox_City.setObjectName("comboBox_City")
-
-        self.label_smallService = QtWidgets.QLabel(self.groupBox_2)
-        self.label_smallService.setGeometry(QtCore.QRect(40, 60, 41, 21))
-        self.label_smallService.setObjectName("label_smallService")
-
-        self.pushButton = QtWidgets.QPushButton(self.groupBox_2)
-        self.pushButton.setGeometry(QtCore.QRect(210, 172, 101, 31))
-        self.pushButton.setObjectName("pushButton")
-
-        self.SearchLayout.addWidget(self.groupBox_2)
-        self.listView = QtWidgets.QListView(self.centralwidget)
-        self.listView.setGeometry(QtCore.QRect(340, 10, 481, 221))
-        self.listView.setObjectName("listView")
+    ComboBox = tkinter.ttk.Combobox(g_Tk, font=TempFont, width=10, height=15, values = sido, textvariable = str)
+    Click_button = Button(text="선택", command = sido_click, font=TempFont1)
+    ComboBox.pack()
+    ComboBox.place(x=20,y=50)
+    Click_button.pack()
+    Click_button.place(x=170, y =50)
+    ComboBox.set("시도검색")
 
 
 
-        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(10, 240, 819, 249))
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setObjectName("scrollArea")
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 817, 247))
-        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-
-        self.verticalScrollBar = QtWidgets.QScrollBar(self.scrollAreaWidgetContents)
-        self.verticalScrollBar.setGeometry(QtCore.QRect(800, 0, 16, 241))
-        self.verticalScrollBar.setOrientation(QtCore.Qt.Vertical)
-        self.verticalScrollBar.setObjectName("verticalScrollBar")
-
-        self.graphicsView = QtWidgets.QGraphicsView(self.scrollAreaWidgetContents)
-        self.graphicsView.setGeometry(QtCore.QRect(10, 30, 321, 211))
-        self.graphicsView.setObjectName("graphicsView")
-
-        self.labelName = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-        self.labelName.setGeometry(QtCore.QRect(10, 10, 31, 21))
-        self.labelName.setObjectName("labelName")
-
-        self.labelAddress_2 = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-        self.labelAddress_2.setGeometry(QtCore.QRect(350, 130, 24, 12))
-        self.labelAddress_2.setObjectName("labelAddress_2")
-
-        self.line = QtWidgets.QFrame(self.scrollAreaWidgetContents)
-        self.line.setGeometry(QtCore.QRect(340, 120, 191, 16))
-        self.line.setFrameShape(QtWidgets.QFrame.HLine)
-        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.line.setObjectName("line")
-
-        self.groupBox = QtWidgets.QGroupBox(self.scrollAreaWidgetContents)
-        self.groupBox.setGeometry(QtCore.QRect(340, 10, 451, 111))
-        self.groupBox.setObjectName("groupBox")
-
-        self.labelNum = QtWidgets.QLabel(self.groupBox)
-        self.labelNum.setGeometry(QtCore.QRect(10, 20, 52, 20))
-        self.labelNum.setObjectName("labelNum")
-
-        self.labePage = QtWidgets.QLabel(self.groupBox)
-        self.labePage.setGeometry(QtCore.QRect(10, 50, 48, 12))
-        self.labePage.setObjectName("labePage")
-
-        self.labelAddress = QtWidgets.QLabel(self.groupBox)
-        self.labelAddress.setGeometry(QtCore.QRect(20, 80, 36, 12))
-        self.labelAddress.setObjectName("labelAddress")
-
-        self.lineEditNum = QtWidgets.QLineEdit(self.groupBox)
-        self.lineEditNum.setGeometry(QtCore.QRect(70, 20, 371, 20))
-        self.lineEditNum.setObjectName("lineEditNum")
-
-        self.lineEditHome = QtWidgets.QLineEdit(self.groupBox)
-        self.lineEditHome.setGeometry(QtCore.QRect(70, 50, 371, 20))
-        self.lineEditHome.setObjectName("lineEditHome")
-
-        self.lineEditAddress = QtWidgets.QLineEdit(self.groupBox)
-        self.lineEditAddress.setGeometry(QtCore.QRect(70, 80, 371, 20))
-        self.lineEditAddress.setObjectName("lineEditAddress")
-
-        self.pushButton_2 = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
-        self.pushButton_2.setGeometry(QtCore.QRect(540, 120, 241, 23))
-        self.pushButton_2.setObjectName("pushButton_2")
-
-        self.textEdit = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)
-        self.textEdit.setGeometry(QtCore.QRect(350, 150, 431, 121))
-        self.textEdit.setObjectName("textEdit")
-
-        self.lineEditName = QtWidgets.QLineEdit(self.scrollAreaWidgetContents)
-        self.lineEditName.setGeometry(QtCore.QRect(40, 10, 291, 20))
-        self.lineEditName.setObjectName("lineEditName")
-
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-
-        MainWindow.setCentralWidget(self.centralwidget)
-
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 837, 21))
-        self.menubar.setObjectName("menubar")
-
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-
-        MainWindow.setStatusBar(self.statusbar)
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.groupBox_2.setTitle(_translate("MainWindow", "Search"))
-        self.label_Service.setText(_translate("MainWindow", "서비스 분류"))
-        self.label_City.setText(_translate("MainWindow", "시군구"))
-        self.label_Area.setText(_translate("MainWindow", "지역"))
-        self.label_smallService.setText(_translate("MainWindow", "소분류"))
-        self.pushButton.setText(_translate("MainWindow", "검색"))
-        self.labelName.setText(_translate("MainWindow", "이름"))
-        self.labelAddress_2.setText(_translate("MainWindow", "개요"))
-        self.groupBox.setTitle(_translate("MainWindow", "Info"))
-        self.labelNum.setText(_translate("MainWindow", "우편번호"))
-        self.labePage.setText(_translate("MainWindow", "홈페이지"))
-        self.labelAddress.setText(_translate("MainWindow", "   주소"))
-        self.pushButton_2.setText(_translate("MainWindow", "View Map"))
+    ComboBox1 = tkinter.ttk.Combobox(g_Tk, font=TempFont, width=10, height=15, values=gungu[0], textvariable = str1)
+    Click_button1 = Button(text="선택", command=gungu_click, font=TempFont1)
+    ComboBox1.pack()
+    ComboBox1.place(x=20, y=100)
+    Click_button1.pack()
+    Click_button1.place(x=170, y=100)
+    ComboBox1.set("시군구검색")
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+
+def InitInputLabel():
+    global InputLabel
+    TempFont = font.Font(g_Tk, size=15, weight='bold', family='Consolas')
+    InputLabel = Entry(g_Tk, font=TempFont, width=26, borderwidth=12, relief='ridge')
+    InputLabel.pack()
+    InputLabel.place(x=10, y=150)
+
+def InitSearchButton():
+    str_search = StringVar()
+    TempFont = font.Font(g_Tk, size=14, weight='bold', family = 'Consolas')
+    SearchButton = Button(g_Tk, font = TempFont, text="검색",  command=SearchButtonAction)
+    SearchButton.pack()
+    SearchButton.place(x=330, y=155)
+
+def Search_TourPlace():
+    conn = http.client.HTTPConnection("openapi.tour.go.kr")
+    URL = "/openapi/service/TourismResourceService/getTourResourceList?serviceKey=cCHEHEp%2BWRwV%2FfoF1u%2FVeQGoxigy9y%2FrGH8XHy3oN11YntHkyn3zf8fpQiLDIKWuVY6qT9MUkLU8yQ1naKv%2BFw%3D%3D&numOfRows=50&SIDO=main&GUNGU=sub&pageNo=PageNumber"
+    URL = URL.replace("main", urllib.parse.quote(str.get()))#urllib.parse.quote(main))
+    URL = URL.replace("sub", urllib.parse.quote(str1.get()))#urllib.parse.quote(sub))
+    URL = URL.replace("PageNumber", '1')
+    print(str.get())
+    print(str1.get())
+    print(URL)
+    conn.request("GET", URL)
+    req = conn.getresponse()
+
+    tree = ElementTree.fromstring(req.read().decode("UTF-8"))
+    itemElements = tree.getiterator("item")  # item 엘리먼트 리스트 추출
+    for item in itemElements:
+        info = dict()
+        result = item.find('ASctnNm')
+        if result !=None:
+            info["카테고리"] = result.text
+        result = item.find('BResNm')
+        if result !=None:
+            info["이름"] = result.text
+        result = item.find('CSido')
+        if result !=None:
+            info["시도"] = result.text
+        result = item.find('DGungu')
+        if result !=None:
+            info["군구"] = result.text
+        result = item.find('EPreSimpleDesc')
+        if result !=None:
+            info["상세정보"] = result.text
+        DataList.append(info)
+
+
+
+def SearchButtonAction():
+    pass
+
+
+def InitSearchList():
+    global RenderText1
+
+    RenderText1 = Listbox(g_Tk, width=49, height=22, borderwidth=12,
+                       relief='ridge')  # , yscrollcommand=RenderTextScrollbar.set
+    RenderText1.pack()
+    RenderText1.place(x=10, y=215)
+
+    TempFont = font.Font(g_Tk, size=12, weight='bold', family='Consolas')
+    PageButton1 = Button(g_Tk, font=TempFont, text="◀", command=Going_Prev_Page)
+    PageButton1.pack()
+    PageButton1.place(x=30, y=600)
+
+    PageButton2 = Button(g_Tk, font=TempFont, text="▶", command=Going_Next_Page)
+    PageButton2.pack()
+    PageButton2.place(x=330, y=600)
+
+
+def Going_Prev_Page():
+    pass
+
+def Going_Next_Page():
+    pass
+
+def InitDetailExplain():
+
+    # RenderTextScrollbar = Scrollbar(g_Tk)
+    # RenderTextScrollbar.pack()
+    # RenderTextScrollbar.place(x=375, y=200)
+    TempFont = font.Font(g_Tk, size=10, family='Consolas')
+    RenderText = Text(g_Tk, width=49, height=40, borderwidth=12,
+                         relief='ridge', font = TempFont)  # , yscrollcommand=RenderTextScrollbar.set)
+
+    for i in range(len(DataList)):
+        RenderText.insert(i, DataList[i]["이름"])
+
+    RenderText.place(x=400, y=10)
+    # RenderTextScrollbar.config(command=RenderText.yview)
+    # RenderTextScrollbar.pack(side=RIGHT, fill=BOTH)
+
+    RenderText.configure(state='disabled')
+
+
+
+    RenderText1.configure(state='disabled')
+
+
+InitTopText()
+InitSido()
+InitInputLabel()
+InitSearchButton()
+InitSearchList()
+InitDetailExplain()
+g_Tk.mainloop()
+
 
