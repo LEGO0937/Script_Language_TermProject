@@ -1,185 +1,385 @@
+# -*- coding: utf-8 -*-
 from tkinter import *
 from tkinter import font
 import tkinter.ttk
 import http.client
-import urllib.parse
-from tkinter import messagebox
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import requests
+import re
+import folium
 
-import json
+import smtplib
+import mimetypes
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+import os
+
+connect = None
+Detail_url = 'http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceDetail'
+List_url = "http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceList"
+Key = 'qmAs0ut6m%2BwM%2FJwamfdK8RkKJz5yNmI4VrT6DEUuwmm%2FW7GMClJBCltEmgQEeSo7v1poVh0ZYPSbihUbMftNUQ%3D%3D'
+#Key = 'cYtnsiDywOollKA9No97lS%2B7V3H1tl2gq5F%2BJyzAxQ70dhlac0M8D84OwUrJkVVy5wC7NwpkGa05zzXUIl3BWA%3D%3D'
+
 from xml.etree import ElementTree
 
-import tkinter.messagebox
-g_Tk = Tk("관광자원 프로그램")
-g_Tk.geometry("950x750+500+100")
-DataList = []
-
-def InitTopText():
-    TempFont = font.Font(g_Tk, size=20, weight='bold', family = 'Consolas')
-    MainText = Label(g_Tk, font = TempFont, text="관광자원 프로그램")
-    MainText.pack()
-    MainText.place(x=20)
-
-def sido_click():
-    #print(str.get())
-    pass
+# 서비스키, 공공데이터포털링크, 시도, 군구 합쳐서 URL생성해주는 함수
+def userURLBuilder(url, **user):
+    str = url + "?"
+    for key in user.keys():
+        str += key + "=" + user[key] + "&"
+    print(str)
+    return str
 
 
-def gungu_click():
-    global RenderText1
-    Search_TourPlace()
+# 종로구만 검색하기위해 사용된 곳
+sido = "서울특별시"
+gugun = "종로구"
+url = userURLBuilder(List_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun)
+
+req = requests.get(url)
+tree = ElementTree.fromstring(req.text)
+itemElements = tree.getiterator("item")
+DATALIST = []
+
+for item in itemElements:
+    DATA = {}
+    tag = item.find("ASctnNm")
+    name = item.find("BResNm")
+    DATA['tag'] = tag.text
+    DATA['name'] = name.text
+    DATALIST.append(DATA)
+# 여기까지
 
 
-    RenderText1.place_forget()
-    TempFont = font.Font(g_Tk, size=10, family='Consolas')
-    RenderText1 = Listbox(g_Tk, width=49, height=22, borderwidth=12,
-                          relief='ridge')  # , yscrollcommand=RenderTextScrollbar.set
-    RenderText1.place(x=10, y=215)
-
-    for i in range(len(DataList)):
-        RenderText1.insert(i, DataList[i]["이름"])
-
-
-def InitSido():
-    sido = ['서울특별시', '인천광역시', '부산광역시']
-
-    gungu = [['중구', '종로구', '용산구', '성동구', '광진구', '동대문구', '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구'],
-             ['중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구', '해운대구', '사하구', '금정구', '강서구'],
-             ['중구', '동구', '남구', '연수구', '남동구', '부평구', '계양구', '서구', '강화군', '옹진군']]
-
-    global str
-    global str1
-    str = StringVar()
-    str1 = StringVar()
-
-    TempFont = font.Font(g_Tk, size=15, weight='bold', family='Consolas')
-    TempFont1 = font.Font(g_Tk, size=10, weight='bold', family='Consolas')
-
-    ComboBox = tkinter.ttk.Combobox(g_Tk, font=TempFont, width=10, height=15, values = sido, textvariable = str)
-    #Click_button = Button(text="선택", command = sido_click, font=TempFont1)
-    ComboBox.pack()
-    ComboBox.place(x=20,y=50)
-    # Click_button.pack()
-    # Click_button.place(x=190, y =50)
-    ComboBox.set("시도검색")
+s = smtplib.SMTP('smtp.gmail.com', 587)
+s.starttls()
+s.login('murder49@gmail.com', 'murderas')
 
 
 
-    ComboBox1 = tkinter.ttk.Combobox(g_Tk, font=TempFont, width=10, height=15, values=gungu[0], textvariable = str1)
-    Click_button1 = Button(text="리스트 검색", command=gungu_click, font=TempFont1)
-    ComboBox1.pack()
-    ComboBox1.place(x=20, y=100)
-    Click_button1.pack()
-    Click_button1.place(x=190, y=100)
-    ComboBox1.set("군구검색")
+
+
+class TKWindow:
+    def __init__(self):
+        window = Tk()
+        window.title("관광자원프로그램")
+        window.geometry("800x670")
+        TempFont = font.Font(window, size=20, weight='bold', family='Consolas')
+        Label(window, text="관광자원 프로그램", font=TempFont).place(x=20, y=0)
+
+        # 시도검색 콤보박스
+        self.sido = ['서울특별시', '인천광역시', '부산광역시']
+        self.str = StringVar()
+        self.SIDO = tkinter.ttk.Combobox(window, font=TempFont, width=10, height=15, values=self.sido,
+                                         textvariable=self.str)
+        self.SIDO.place(x=20, y=50)
+        self.SIDO.set("시도검색")
+
+        # 군구검색 앤트리박스
+        TempFont_Search = font.Font(window, size=10, weight='bold', family='Consolas')
+        self.GUNGU = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
+        self.GUNGU.place(x=20, y=100)
+
+        # 검색 버튼
+        TempFont_Button = font.Font(window, size=13, weight='bold', family='Consolas')
+        # 검색의 편리함을 위해 원래 것은 주석처리했다
+        # self.searchButton = Button(window, text="리스트검색", command=self.Search, font=TempFont_Button)
+        self.searchButton = Button(window, text="리스트검색", command=self. SearchList_Only_Seoul, font=TempFont_Button)
+        self.searchButton.place(x=260, y=100)
+
+        # 관광자원 검색 앤트리박스
+        self.SOURCE = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
+        self.SOURCE.place(x=20, y=160)
+
+        # 검색 버튼
+        # 검색의 편리함을 위해 원래 것은 주석처리했다
+        # self.Resource_searchButton = Button(window, text="자원검색", command=self.Source_Search, font=TempFont_Button)
+        self.Resource_searchButton = Button(window, text="자원검색", command=self.Source_Search_Only_Seoul, font=TempFont_Button)
+        self.Resource_searchButton.place(x=280, y=160)
+
+        # 관광지 리스트 박스
+        self.TEXTLIST = Listbox(window, width=45, height=23, borderwidth=12, relief='ridge')
+        self.TEXTLIST.place(x=20, y=220)
+        # 검색의 편리함을 위해 원래 것은 주석처리했다
+        # self.TEXTLIST.bind('<<ListboxSelect>>', self.SelectBuild)
+        self.TEXTLIST.bind('<<ListboxSelect>>', self.SelectBuild_Only_Seoul)
+
+        # # 페이지 넘기기 버튼 과연 필요할까?
+        # TempFont_direction = font.Font(window, size=12, weight='bold', family='Consolas')
+        # PageButton1 = Button(window, font= TempFont_direction, text="◀", command=Going_Prev_Page)
+        # PageButton1.place(x=50, y=710)
+        #
+        # PageButton2 = Button(window, font= TempFont_direction, text="▶", command=Going_Next_Page)
+        # PageButton2.place(x=350, y=710)
+
+        # 관광지 설명 텍스트 박스
+        self.EXPLAIN = Text(window, width=42, height=40, borderwidth=12, relief='ridge')
+        self.EXPLAIN.place(x=420, y=20)
+
+        # 메일 주소 입력 entry
+        self.Mailentry = Entry(window, width=28, borderwidth=10, relief='ridge')
+        self.Mailentry.place(x=420,y=570)
+
+        # 정보 Gmail 보내는 버튼
+        TempFont_Mail = font.Font(window, size=11, weight='bold', family='Consolas')
+        self.Mail = Button(window, text="이메일보내기", command=self.Send_Mail, font=TempFont_Mail)
+        self.Mail.place(x=640, y=570)
+
+        window.mainloop()
+
+    # 시도, 군구 받아 파싱하는 함수
+    def Search(self):
+        self.Sido = self.SIDO.get()
+        self.Sigun = self.GUNGU.get()
+        self.url = userURLBuilder(List_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun)
+        print(self.url)
+        self.SearchList()
+
+    # 파싱한 함수를 기반으로 리스트 출력하는 함수
+    def SearchList(self):
+        self.DATALIST = []
+        if len(self.DATALIST) > 0:
+            self.TEXTLIST.delete(1.0, END)
+            self.TEXTLIST.update()
+
+        req = requests.get(self.url)
+        tree = ElementTree.fromstring(req.text)
+        itemElements = tree.getiterator("item")
+
+        for item in itemElements:
+            self.DATA = {}
+            tag = item.find("ASctnNm")
+            name = item.find("BResNm")
+            self.DATA['tag'] = tag.text
+            self.DATA['name'] = name.text
+            self.DATALIST.append(self.DATA)
+
+        for i in range(len(self.DATALIST)):
+            str_name = "<" + str(i + 1) + "번> 시설이름 : " + self.DATALIST[i]['name']
+            self.TEXTLIST.insert(i, str_name)
+
+    def  SearchList_Only_Seoul(self):
+        for i in range(len(DATALIST)):
+            str_name = "<" + str(i + 1) + "번> 시설이름 : " + DATALIST[i]['name']
+            self.TEXTLIST.insert(i, str_name)
+
+
+    # 자원 직접 검색 함수 아직 미구현
+    def Source_Search(self):
+        self.Sido = self.SIDO.get()
+        self.Sigun = self.GUNGU.get()
+        self.Source = self.SOURCE.get()
+        self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun, RES_NM=self.Source)
+
+        req = requests.get(self.url_d)
+        tree = ElementTree.fromstring(req.text)
+        itemElements = tree.getiterator("item")
+        self.DataList = []
+        for item in itemElements:
+            self.info = {}
+            index = item.find("ASctnNm")
+            name = item.find("BResNm")
+            explain = item.find("FSimpleDesc")
+            phone = item.find("KPhone")
+            posit = item.find("LGpsCoordinate")
+            if explain is None:
+                self.info['explain'] = "설명없음"
+            else:
+                self.info['explain'] = explain.text
+            self.info['index'] = index.text
+            self.info['name'] = name.text
+            self.info['phone'] = phone.text
+            if posit is None:
+                self.info['posit'] = "NONE"
+            else:
+                self.info['posit'] = posit.text
+            self.DataList.append(self.info)
+        print(self.DataList)
+        self.EXPLAIN.delete(1.0, END)
+        self.EXPLAIN.update()
+        self.EXPLAIN.insert(1.0, self.DataList[0]['phone'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<전화번호> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['explain'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['name'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<이름> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['index'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<항목>")
+
+    def Source_Search_Only_Seoul(self):
+        self.Sido = self.SIDO.get()
+        self.Sigun = self.GUNGU.get()
+        self.Source = self.SOURCE.get()
+        self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO="서울특별시", GUNGU="종로구", RES_NM=self.Source)
+
+        req = requests.get(self.url_d)
+        tree = ElementTree.fromstring(req.text)
+        itemElements = tree.getiterator("item")
+        self.DataList = []
+        for item in itemElements:
+            self.info = {}
+            index = item.find("ASctnNm")
+            name = item.find("BResNm")
+            explain = item.find("FSimpleDesc")
+            phone = item.find("KPhone")
+            posit = item.find("LGpsCoordinate")
+            if explain is None:
+                self.info['explain'] = "설명없음"
+            else:
+                self.info['explain'] = explain.text
+            self.info['index'] = index.text
+            self.info['name'] = name.text
+            self.info['phone'] = phone.text
+            if posit is None:
+                self.info['posit'] = "NONE"
+            else:
+                self.info['posit'] = posit.text
+            self.DataList.append(self.info)
+        print(self.DataList)
+        self.EXPLAIN.delete(1.0, END)
+        self.EXPLAIN.update()
+        self.EXPLAIN.insert(1.0, self.DataList[0]['phone'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<전화번호> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['explain'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['name'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<이름> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['index'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<항목>")
+
+    # 이메일 보내는 함수 아직 미구현
+    def Send_Mail(self):
+        msg = MIMEBase('multipart', 'mixed')
+        msg['Subject'] = self.info['name'] + ' 정보 메일'
+        msg['From'] = 'chamin1212@naver.com'
+        msg['To'] = self.Mailentry.get()
+        msg.attach(MIMEText("<이름> : " + self.info['name'] + "\n<항목> : "+ self.info['index'] + "\n" + self.info['explain'] + "\n<전화번호> : " + self.info['phone']))
+        if self.info['posit'] != "NONE":
+            mapXY = self.info['posit'].replace('.', '')
+            mapXY = mapXY.replace('˙', '')
+            mapXY = mapXY.replace('˚', '.')
+            maplist = mapXY.split(', ')
+            self.map_osm = folium.Map(location=[maplist[0], maplist[1]], zoom_start=13)
+            folium.Marker([maplist[0], maplist[1]], popup=self.info['name']).add_to(self.map_osm)
+            self.map_osm.save('osm.html')
+            path = 'osm.html'
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(open(path, 'rb').read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"'% os.path.basename(path))
+            msg.attach(part)
+        s.sendmail('chamin1212@naver.com', self.Mailentry.get(), msg.as_string())
+        #naver_server.close()
+
+    # 페이지 넘기기 함수 아직 미구현
+    def Going_Prev_Page(self):
+        pass
+
+    def Going_Next_Page(self):
+        pass
+
+    # 설명창 기입 함수
+    def SelectBuild(self,evt):
+        i = self.TEXTLIST.curselection()[0]
+        NM = self.DATALIST[i]['name']
+        self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun, RES_NM=NM)
+
+        req = requests.get(self.url_d)
+        tree = ElementTree.fromstring(req.text)
+        itemElements = tree.getiterator("item")
+        self.DataList = []
+        for item in itemElements:
+            self.info = {}
+            index = item.find("ASctnNm")
+            name = item.find("BResNm")
+            explain = item.find("FSimpleDesc")
+            phone = item.find("KPhone")
+            posit = item.find("LGpsCoordinate")
+            if explain is None:
+                self.info['explain'] = "설명없음"
+            else:
+                self.info['explain'] = explain.text
+            self.info['index'] = index.text
+            self.info['name'] = name.text
+            self.info['phone'] = phone.text
+            if posit is None:
+                self.info['posit'] = "NONE"
+            else:
+                self.info['posit'] = posit.text
+            self.DataList.append(self.info)
+        print(self.DataList)
+        self.EXPLAIN.delete(1.0, END)
+        self.EXPLAIN.update()
+        self.EXPLAIN.insert(1.0, self.DataList[0]['phone'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<전화번호> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['explain'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['name'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<이름> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['index'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<항목>")
+
+    def SelectBuild_Only_Seoul(self,evt):
+        i = self.TEXTLIST.curselection()[0]
+        NM = DATALIST[i]['name']
+        self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun, RES_NM=NM)
+
+        req = requests.get(self.url_d)
+        tree = ElementTree.fromstring(req.text)
+        itemElements = tree.getiterator("item")
+        self.DataList = []
+        for item in itemElements:
+            self.info = {}
+            index = item.find("ASctnNm")
+            name = item.find("BResNm")
+            explain = item.find("FSimpleDesc")
+            phone = item.find("KPhone")
+            posit = item.find("LGpsCoordinate")
+            if explain is None:
+                self.info['explain'] = "설명없음"
+            else:
+                self.info['explain'] = explain.text
+            self.info['index'] = index.text
+            self.info['name'] = name.text
+            self.info['phone'] = phone.text
+            if posit is None:
+                self.info['posit'] = "NONE"
+            else:
+                self.info['posit'] = posit.text
+            self.DataList.append(self.info)
+        print(self.DataList)
+        self.EXPLAIN.delete(1.0, END)
+        self.EXPLAIN.update()
+        self.EXPLAIN.insert(1.0, self.DataList[0]['phone'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<전화번호> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['explain'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['name'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<이름> ")
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, self.DataList[0]['index'])
+        self.EXPLAIN.insert(1.0, "\n\n")
+        self.EXPLAIN.insert(1.0, "<항목>")
 
 
 
-def InitInputLabel():
-    global InputLabel
-    TempFont = font.Font(g_Tk, size=15, weight='bold', family='Consolas')
-    InputLabel = Entry(g_Tk, font=TempFont, width=23, borderwidth=12, relief='ridge')
-    InputLabel.pack()
-    InputLabel.place(x=10, y=150)
-
-def InitSearchButton():
-    str_search = StringVar()
-    TempFont = font.Font(g_Tk, size=14, weight='bold', family = 'Consolas')
-    SearchButton = Button(g_Tk, font = TempFont, text="검색",  command=SearchButtonAction)
-    SearchButton.pack()
-    SearchButton.place(x=360, y=155)
-
-def Search_TourPlace():
-    conn = http.client.HTTPConnection("openapi.tour.go.kr")
-    URL = "/openapi/service/TourismResourceService/getTourResourceList?serviceKey=cCHEHEp%2BWRwV%2FfoF1u%2FVeQGoxigy9y%2FrGH8XHy3oN11YntHkyn3zf8fpQiLDIKWuVY6qT9MUkLU8yQ1naKv%2BFw%3D%3D&numOfRows=50&SIDO=main&GUNGU=sub&pageNo=PageNumber"
-    URL = URL.replace("main", urllib.parse.quote(str.get()))#urllib.parse.quote(main))
-    URL = URL.replace("sub", urllib.parse.quote(str1.get()))#urllib.parse.quote(sub))
-    URL = URL.replace("PageNumber", '1')
-    print(str.get())
-    print(str1.get())
-    print(URL)
-    conn.request("GET", URL)
-    req = conn.getresponse()
-
-    tree = ElementTree.fromstring(req.read().decode("UTF-8"))
-    itemElements = tree.getiterator("item")  # item 엘리먼트 리스트 추출
-    for item in itemElements:
-        info = dict()
-        result = item.find('ASctnNm')
-        if result !=None:
-            info["카테고리"] = result.text
-        result = item.find('BResNm')
-        if result !=None:
-            info["이름"] = result.text
-        result = item.find('CSido')
-        if result !=None:
-            info["시도"] = result.text
-        result = item.find('DGungu')
-        if result !=None:
-            info["군구"] = result.text
-        result = item.find('EPreSimpleDesc')
-        if result !=None:
-            info["상세정보"] = result.text
-        DataList.append(info)
-
-
-
-def SearchButtonAction():
-    pass
-
-
-def InitSearchList():
-    global RenderText1
-
-    RenderText1 = Listbox(g_Tk, width=49, height=22, borderwidth=12,
-                       relief='ridge')  # , yscrollcommand=RenderTextScrollbar.set
-    RenderText1.pack()
-    RenderText1.place(x=10, y=215)
-
-    TempFont = font.Font(g_Tk, size=12, weight='bold', family='Consolas')
-    PageButton1 = Button(g_Tk, font=TempFont, text="◀", command=Going_Prev_Page)
-    PageButton1.pack()
-    PageButton1.place(x=50, y=710)
-
-    PageButton2 = Button(g_Tk, font=TempFont, text="▶", command=Going_Next_Page)
-    PageButton2.pack()
-    PageButton2.place(x=350, y=710)
-
-
-def Going_Prev_Page():
-    pass
-
-def Going_Next_Page():
-    pass
-
-def InitDetailExplain():
-
-    # RenderTextScrollbar = Scrollbar(g_Tk)
-    # RenderTextScrollbar.pack()
-    # RenderTextScrollbar.place(x=375, y=200)
-    TempFont = font.Font(g_Tk, size=10, family='Consolas')
-    RenderText = Text(g_Tk, width=49, height=35, borderwidth=12,
-                         relief='ridge', font = TempFont)  # , yscrollcommand=RenderTextScrollbar.set)
-
-    for i in range(len(DataList)):
-        RenderText.insert(i, DataList[i]["이름"])
-
-    RenderText.place(x=450, y=10)
-    # RenderTextScrollbar.config(command=RenderText.yview)
-    # RenderTextScrollbar.pack(side=RIGHT, fill=BOTH)
-
-    RenderText.configure(state='disabled')
-
-
-
-    RenderText1.configure(state='disabled')
-
-
-InitTopText()
-InitSido()
-InitInputLabel()
-InitSearchButton()
-InitSearchList()
-InitDetailExplain()
-g_Tk.mainloop()
-
-
+TKWindow()
