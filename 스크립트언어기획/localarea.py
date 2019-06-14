@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # local_area = [
 #     {"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]},
 #     {"sido": "부산광역시", "gungu" : ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"]},
@@ -16,9 +17,47 @@
 #     {"sido": "경상남도", "gungu" : ["창원시", "의창구", "성산구", "마산합포구", "마산회원구", "진해구", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군", "창녕군", "고성군", "남해군", "하동군", "산청군", "함양군", "거창군", "합천군"]},
 #     {"sido": "제주특별자치도", "gungu" : ["제주시", "서귀포시"]}]
 
-# -*- coding: utf-8 -*-
+from xml.etree import ElementTree
+import requests
 
-local_area = {"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]}
+List_url = "http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceList"
+Key = 'qmAs0ut6m%2BwM%2FJwamfdK8RkKJz5yNmI4VrT6DEUuwmm%2FW7GMClJBCltEmgQEeSo7v1poVh0ZYPSbihUbMftNUQ%3D%3D'
 
-print(local_area["gungu"])
+def userURLBuilder(url, **user):
+    str = url + "?"
+    for key in user.keys():
+        str += key + "=" + user[key] + "&"
+    print(str)
+    return str
+
+local_area = [{"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]}, {"sido": "부산광역시", "gungu" : ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"]},  {"sido": "인천광역시", "gungu" : ["중구", "동구", "남구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"]}]
+
+cnt = 0
+
+DATALIST = []
+for items in range(len(local_area)):
+    #print(local_area[items]["sido"])
+    for items2 in range(len(local_area)):
+       #print(local_area[items]["gungu"][items2])
+       sido = local_area[items]["sido"]
+       gugun = local_area[items]["gungu"][items2]
+       url = userURLBuilder(List_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun)
+
+       req = requests.get(url)
+       tree = ElementTree.fromstring(req.text)
+       itemElements = tree.getiterator("item")
+       DATALST = []
+
+       for item in itemElements:
+           DATA = {}
+           tag = item.find("ASctnNm")
+           name = item.find("BResNm")
+           DATA['tag'] = tag.text
+           DATA['name'] = name.text
+           DATALST.append(DATA)
+       DATALIST.append(DATALST)
+
+
+print(DATALIST[2])
+
 

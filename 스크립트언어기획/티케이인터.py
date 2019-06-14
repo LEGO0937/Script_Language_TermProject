@@ -85,7 +85,8 @@ class TKWindow:
 
         # 군구검색 앤트리박스
         TempFont_Search = font.Font(window, size=10, weight='bold', family='Consolas')
-        self.GUNGU = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
+        self.str2 = StringVar()
+        self.GUNGU = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge', textvariable=self.str2)
         self.GUNGU.place(x=20, y=160)
 
         # 검색 버튼
@@ -97,7 +98,8 @@ class TKWindow:
         self.searchButton.place(x=250, y=165)
 
         # 관광자원 검색 앤트리박스
-        self.SOURCE = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
+        self.str3 = StringVar()
+        self.SOURCE = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge', textvariable=self.str3)
         self.SOURCE.place(x=20, y=220)
 
         # 검색 버튼
@@ -539,6 +541,7 @@ class TKWindow:
         self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun, RES_NM=NM)
         self.Explain_url = userURLBuilder(List_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun,
                                           RES_NM=NM)
+        print(self.Explain_url)
         req = requests.get(self.url_d)
         tree = ElementTree.fromstring(req.text)
         itemElements = tree.getiterator("item")
