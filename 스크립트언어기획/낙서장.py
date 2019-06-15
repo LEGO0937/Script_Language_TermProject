@@ -20,6 +20,12 @@ import traceback
 import tkinter.filedialog
 from pprint import pprint
 
+from io import StringIO
+import io
+from lxml.html import parse
+import urllib.request
+from PIL import Image, ImageTk
+
 connect = None
 Detail_url = 'http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceDetail'
 List_url = "http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceList"
@@ -43,31 +49,24 @@ def userURLBuilder(url, **user):
     print(str)
     return str
 
-local_area = [{"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]}, {"sido": "부산광역시", "gungu" : ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"]},  {"sido": "인천광역시", "gungu" : ["중구", "동구", "남구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"]}]
+# 종로구만 검색하기위해 사용된 곳
+sido = "서울특별시"
+gugun = "종로구"
+url = userURLBuilder(List_url, ServiceKey=Key, SIDO=sido[0], GUNGU=gugun)
 
+req = requests.get(url)
+tree = ElementTree.fromstring(req.text)
+itemElements = tree.getiterator("item")
 DATALIST = []
-for items in range(len(local_area)):
-    #print(local_area[items]["sido"])
-    for items2 in range(len(local_area)):
-       #print(local_area[items]["gungu"][items2])
-       sido = local_area[items]["sido"]
-       gugun = local_area[items]["gungu"][items2]
-       url = userURLBuilder(List_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun)
 
-       req = requests.get(url)
-       tree = ElementTree.fromstring(req.text)
-       itemElements = tree.getiterator("item")
-       DATALST = []
-
-       for item in itemElements:
-           DATA = {}
-           tag = item.find("ASctnNm")
-           name = item.find("BResNm")
-           DATA['tag'] = tag.text
-           DATA['name'] = name.text
-           DATALST.append(DATA)
-       DATALIST.append(DATALST)
-
+for item in itemElements:
+    DATA = {}
+    tag = item.find("ASctnNm")
+    name = item.find("BResNm")
+    DATA['tag'] = tag.text
+    DATA['name'] = name.text
+    DATALIST.append(DATA)
+# 여기까지
 
 s = smtplib.SMTP('smtp.gmail.com', 587)
 s.starttls()
@@ -84,13 +83,16 @@ class TKWindow:
 
         # 시도검색 콤보박스
         self.sido = ['서울특별시', '인천광역시', '부산광역시']
-        self.SIDO = tkinter.ttk.Combobox(window, font=TempFont, width=10, height=15, values=self.sido)
+        self.str = StringVar()
+        self.SIDO = tkinter.ttk.Combobox(window, font=TempFont, width=10, height=15, values=self.sido,
+                                         textvariable=self.str)
         self.SIDO.place(x=25, y=100)
         self.SIDO.set("시도검색")
 
         # 군구검색 앤트리박스
         TempFont_Search = font.Font(window, size=10, weight='bold', family='Consolas')
-        self.GUNGU = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
+        self.str2 = StringVar()
+        self.GUNGU = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge', textvariable=self.str2)
         self.GUNGU.place(x=20, y=160)
 
         # 검색 버튼
@@ -98,18 +100,19 @@ class TKWindow:
         # 검색의 편리함을 위해 원래 것은 주석처리했다
         # self.searchButton = Button(window, text="리스트검색", command=self.Search, font=TempFont_Button)
         self.listimage = PhotoImage(file="./Image/ListSearch.png")
-        self.searchButton = Button(window, width=100, height=30,command=self.SearchList, image=self.listimage)
+        self.searchButton = Button(window, width=100, height=30,command=self. SearchList_Only_Seoul, image=self.listimage)
         self.searchButton.place(x=250, y=165)
 
         # 관광자원 검색 앤트리박스
-        self.SOURCE = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
+        self.str3 = StringVar()
+        self.SOURCE = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge', textvariable=self.str3)
         self.SOURCE.place(x=20, y=220)
 
         # 검색 버튼
         # 검색의 편리함을 위해 원래 것은 주석처리했다
         # self.Resource_searchButton = Button(window, text="자원검색", command=self.Source_Search, font=TempFont_Button)
         self.sourceimage = PhotoImage(file="./Image/ResourceSearch.png")
-        self.Resource_searchButton = Button(window,width=100, height=30, command=self.Source_Search, image=self.sourceimage)
+        self.Resource_searchButton = Button(window,width=100, height=30, command=self.Source_Search_Only_Seoul, image=self.sourceimage)
         self.Resource_searchButton.place(x=250, y=225)
 
         # 관광지 리스트 박스
@@ -131,6 +134,7 @@ class TKWindow:
         # 관광지 설명 텍스트 박스
         self.EXPLAIN = Text(window, width=42, height=25, borderwidth=12, relief='ridge')
         self.EXPLAIN.place(x=430, y=200)
+
 
 
         # 메일 주소 입력 entry
@@ -155,8 +159,14 @@ class TKWindow:
         self.IMAGE = Label(window, width=250, height=150, image=self.earth)
         self.IMAGE.place(x=460, y=20)
 
+        #if self.info['posit'] != "NONE":
+
+        self.map_image = self.GetMapImage(40.702147,-74.015794)
+        self.MAP = Label(window, image = self.map_image, width=300, height=300)
+        self.MAP.place(x=400, y=20)
         bot.message_loop(self.handle)
         window.mainloop()
+
 
     # 지도 html 파일 오픈하는 함수
     def MapOpen(self):
@@ -181,52 +191,33 @@ class TKWindow:
         self.url = userURLBuilder(List_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun)
         print(self.url)
         self.SearchList()
-
     # 파싱한 함수를 기반으로 리스트 출력하는 함수
     def SearchList(self):
-        # for i in range(len(DATALIST)):
-        #     str_name = "<" + str(i + 1) + "번>:" + DATALIST[i]['name']
-        #     self.TEXTLIST.insert(i, str_name)
-        # local_area = [{"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]}, {"sido": "부산광역시", "gungu" : ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"]},  {"sido": "인천광역시", "gungu" : ["중구", "동구", "남구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"]}]
-        if self.TEXTLIST.size() != 0:
-            self.TEXTLIST.delete(0, END)
-        if self.SIDO.get() =="서울특별시" and self.GUNGU.get() == "종로구":
-            for i in range(len(DATALIST[0])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[0][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() =="서울특별시" and self.GUNGU.get() == "중구":
-            for i in range(len(DATALIST[1])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[1][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() =="서울특별시" and self.GUNGU.get() == "용산구":
-            for i in range(len(DATALIST[2])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[2][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() =="부산광역시" and self.GUNGU.get() == "중구":
-            for i in range(len(DATALIST[3])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[3][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() =="부산광역시" and self.GUNGU.get() == "서구":
-            for i in range(len(DATALIST[4])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[4][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() =="부산광역시" and self.GUNGU.get() == "동구":
-            for i in range(len(DATALIST[5])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[5][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() == "인천광역시" and self.GUNGU.get() == "중구":
-            for i in range(len(DATALIST[6])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[6][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() == "인천광역시" and self.GUNGU.get() == "동구":
-            for i in range(len(DATALIST[7])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[7][i]['name']
-                self.TEXTLIST.insert(i, str_name)
-        elif self.SIDO.get() == "인천광역시" and self.GUNGU.get() == "남구":
-            for i in range(len(DATALIST[8])):
-                str_name = "<" + str(i + 1) + "번>:" + DATALIST[8][i]['name']
-                self.TEXTLIST.insert(i, str_name)
+        self.DATALIST = []
+        if len(self.DATALIST) > 0:
+            self.TEXTLIST.delete(1.0, END)
+            self.TEXTLIST.update()
 
+        req = requests.get(self.url)
+        tree = ElementTree.fromstring(req.text)
+        itemElements = tree.getiterator("item")
+
+        for item in itemElements:
+            self.DATA = {}
+            tag = item.find("ASctnNm")
+            name = item.find("BResNm")
+            self.DATA['tag'] = tag.text
+            self.DATA['name'] = name.text
+            self.DATALIST.append(self.DATA)
+
+        for i in range(len(self.DATALIST)):
+            str_name = "<" + str(i + 1) + "번> 시설이름 : " + self.DATALIST[i]['name']
+            self.TEXTLIST.insert(i, str_name)
+
+    def  SearchList_Only_Seoul(self):
+        for i in range(len(DATALIST)):
+            str_name = "<" + str(i + 1) + "번>:" + DATALIST[i]['name']
+            self.TEXTLIST.insert(i, str_name)
 
     def imageSearch(self):
         client_id = "to5NEwmlVW_cMpODwsVg"
@@ -363,29 +354,12 @@ class TKWindow:
 
     # 리스트를 읽어오는 함수
     def getListData(self, SIDO_param, GUNGU_param):
-
         res_list = []
-        if SIDO_param=="서울특별시" and GUNGU_param=="종로구":
-            SIDO_ind = 0
-        elif SIDO_param=="서울특별시" and GUNGU_param=="중구":
-            SIDO_ind = 1
-        elif SIDO_param=="서울특별시" and GUNGU_param=="용산구":
-            SIDO_ind = 2
-        elif SIDO_param=="부산광역시" and GUNGU_param=="중구":
-            SIDO_ind = 3
-        elif SIDO_param=="부산광역시" and GUNGU_param == "서구":
-            SIDO_ind = 4
-        elif SIDO_param=="부산광역시" and GUNGU_param=="동구":
-            SIDO_ind = 5
-        elif SIDO_param=="인천광역시" and GUNGU_param=="중구":
-            SIDO_ind = 6
-        elif SIDO_param=="인천광역시" and GUNGU_param=="동구":
-            SIDO_ind = 7
-        elif SIDO_param=="인천광역시" and GUNGU_param=="남구":
-            SIDO_ind = 8
+        #SIDO_ind = DATALIST.index(SIDO_param)
+        #GUNGU_ind =DATALIST[SIDO_ind].index(GUNGU_param)
 
-        for i in range(len(DATALIST[SIDO_ind])):
-            str_name = "<" + str(i + 1) + "번>:" + DATALIST[SIDO_ind][i]['name']
+        for i in range(len(DATALIST)):
+            str_name = "<" + str(i + 1) + "번>:" + DATALIST[i]['name']
             res_list.append(str_name)
         return res_list
 
@@ -427,9 +401,9 @@ class TKWindow:
             for item in ex_itemElements:
                 explain = item.find("EPreSimpleDesc")
                 if explain is None:
-                    Detail_inf['explain'] = "설명없음"
+                    self.info['explain'] = "설명없음"
                 else:
-                    Detail_inf['explain'] = explain.text
+                    self.info['explain'] = explain.text
         DataList.append(Detail_inf)
         print(DataList)
         res_detail.append('<항목>\n\n'+ DataList[0]['index']+'\n\n')
@@ -532,6 +506,7 @@ class TKWindow:
         i = self.TEXTLIST.curselection()[0]
         NM = self.DATALIST[i]['name']
         self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun, RES_NM=NM)
+
         req = requests.get(self.url_d)
         tree = ElementTree.fromstring(req.text)
         itemElements = tree.getiterator("item")
@@ -573,35 +548,18 @@ class TKWindow:
         self.EXPLAIN.insert(1.0, "<항목>")
 
     #리스트 선택함수
-    def SelectBuild_Only_Seoul(self, evt):
+    def SelectBuild_Only_Seoul(self,evt):
         i = self.TEXTLIST.curselection()[0]
-        if self.SIDO.get() == "서울특별시" and self.GUNGU.get() == "종로구":
-            NM = DATALIST[0][i]['name']
-        elif self.SIDO.get() == "서울특별시" and self.GUNGU.get() == "중구":
-            NM = DATALIST[1][i]['name']
-        elif self.SIDO.get() == "서울특별시" and self.GUNGU.get() == "용산구":
-            NM = DATALIST[2][i]['name']
-        elif self.SIDO.get() == "부산광역시" and self.GUNGU.get() == "중구":
-            NM = DATALIST[3][i]['name']
-        elif self.SIDO.get() == "부산광역시" and self.GUNGU.get() == "서구":
-            NM = DATALIST[4][i]['name']
-        elif self.SIDO.get() == "부산광역시" and self.GUNGU.get() == "동구":
-            NM = DATALIST[5][i]['name']
-        elif self.SIDO.get() == "인천광역시" and self.GUNGU.get() == "중구":
-            NM = DATALIST[6][i]['name']
-        elif self.SIDO.get() == "인천광역시" and self.GUNGU.get() == "동구":
-            NM = DATALIST[7][i]['name']
-        elif self.SIDO.get() == "인천광역시" and self.GUNGU.get() == "남구":
-            NM = DATALIST[8][i]['name']
-        self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=self.SIDO.get(), GUNGU=self.GUNGU.get(), RES_NM=NM)
-        self.Explain_url = userURLBuilder(List_url, ServiceKey=Key, SIDO=self.SIDO.get(), GUNGU=self.GUNGU.get(),
+        NM = DATALIST[i]['name']
+        self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun, RES_NM=NM)
+        self.Explain_url = userURLBuilder(List_url, ServiceKey=Key, SIDO=sido, GUNGU=gugun,
                                           RES_NM=NM)
         print(self.Explain_url)
         req = requests.get(self.url_d)
         tree = ElementTree.fromstring(req.text)
         itemElements = tree.getiterator("item")
         self.DataList = []
-        is_ex = False
+        is_ex=False
         for item in itemElements:
             self.info = {}
             index = item.find("ASctnNm")
@@ -654,10 +612,6 @@ class TKWindow:
         self.Search_Image(NM)
 
     def Search_Image(self, NM):
-        from io import StringIO
-        from lxml.html import parse
-        import urllib.request
-        from PIL import Image, ImageTk
         keyword = NM
         url = 'https://www.google.co.kr/search?q=' + keyword + '&source=lnms&tbm=isch&sa=X&ved=0ahUKEwic-taB9IXVAhWDHpQKHXOjC14Q_AUIBigB&biw=1842&bih=990'
         text = requests.get(url).text
@@ -674,5 +628,24 @@ class TKWindow:
 
         self.IMAGE.config(image=self.image)
 
-TKWindow()
 
+    def GetMapImage(self,latitude,longitude):
+        BaseURL = 'https://maps.googleapis.com/maps/api/staticmap?center=LATITUDE,LONGITUDE&zoom=13&size=300x300&maptype=roadmap&markers=color:blue%7Clabel:S%LATITUDE,LONGITUDE&key='
+        Key = 'AIzaSyCIwXZ_47Dyl_KmrInmMc_jAjCTsDV3goA'
+        BaseURL = BaseURL.replace('LATITUDE',str(latitude))
+        BaseURL = BaseURL.replace('LONGITUDE', str(longitude))
+        url = BaseURL + Key
+
+        print(url)
+
+        u = urllib.request.urlopen(url)
+        raw_data = u.read()
+        im = Image.open(io.BytesIO(raw_data))
+        image = ImageTk.PhotoImage(im)
+        u.close()
+        return image
+
+
+
+
+TKWindow()
