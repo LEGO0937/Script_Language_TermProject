@@ -45,8 +45,6 @@ def userURLBuilder(url, **user):
 
 local_area = [{"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]}, {"sido": "부산광역시", "gungu" : ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"]},  {"sido": "인천광역시", "gungu" : ["중구", "동구", "남구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"]}]
 
-
-
 DATALIST = []
 for items in range(len(local_area)):
     #print(local_area[items]["sido"])
@@ -160,7 +158,6 @@ class TKWindow:
         bot.message_loop(self.handle)
         window.mainloop()
 
-
     # 지도 html 파일 오픈하는 함수
     def MapOpen(self):
         if self.info['posit'] != "NONE":
@@ -176,6 +173,7 @@ class TKWindow:
             folium.Marker([maplist[0], maplist[1]], popup=self.info['name']).add_to(self.map_osm)
             self.map_osm.save('osm.html')
             os.system("osm.html")
+
     # 시도, 군구 받아 파싱하는 함수
     def Search(self):
         self.Sido = self.SIDO.get()
@@ -183,14 +181,15 @@ class TKWindow:
         self.url = userURLBuilder(List_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun)
         print(self.url)
         self.SearchList()
+
     # 파싱한 함수를 기반으로 리스트 출력하는 함수
-
     def SearchList(self):
-
         # for i in range(len(DATALIST)):
         #     str_name = "<" + str(i + 1) + "번>:" + DATALIST[i]['name']
         #     self.TEXTLIST.insert(i, str_name)
         # local_area = [{"sido": "서울특별시", "gungu" : ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]}, {"sido": "부산광역시", "gungu" : ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"]},  {"sido": "인천광역시", "gungu" : ["중구", "동구", "남구", "연수구", "남동구", "부평구", "계양구", "서구", "강화군", "옹진군"]}]
+        if self.TEXTLIST.size() != 0:
+            self.TEXTLIST.delete(0, END)
         if self.SIDO.get() =="서울특별시" and self.GUNGU.get() == "종로구":
             for i in range(len(DATALIST[0])):
                 str_name = "<" + str(i + 1) + "번>:" + DATALIST[0][i]['name']
@@ -364,12 +363,29 @@ class TKWindow:
 
     # 리스트를 읽어오는 함수
     def getListData(self, SIDO_param, GUNGU_param):
-        res_list = []
-        #SIDO_ind = DATALIST.index(SIDO_param)
-        #GUNGU_ind =DATALIST[SIDO_ind].index(GUNGU_param)
 
-        for i in range(len(DATALIST)):
-            str_name = "<" + str(i + 1) + "번>:" + DATALIST[i]['name']
+        res_list = []
+        if SIDO_param=="서울특별시" and GUNGU_param=="종로구":
+            SIDO_ind = 0
+        elif SIDO_param=="서울특별시" and GUNGU_param=="중구":
+            SIDO_ind = 1
+        elif SIDO_param=="서울특별시" and GUNGU_param=="용산구":
+            SIDO_ind = 2
+        elif SIDO_param=="부산광역시" and GUNGU_param=="중구":
+            SIDO_ind = 3
+        elif SIDO_param=="부산광역시" and GUNGU_param == "서구":
+            SIDO_ind = 4
+        elif SIDO_param=="부산광역시" and GUNGU_param=="동구":
+            SIDO_ind = 5
+        elif SIDO_param=="인천광역시" and GUNGU_param=="중구":
+            SIDO_ind = 6
+        elif SIDO_param=="인천광역시" and GUNGU_param=="동구":
+            SIDO_ind = 7
+        elif SIDO_param=="인천광역시" and GUNGU_param=="남구":
+            SIDO_ind = 8
+
+        for i in range(len(DATALIST[SIDO_ind])):
+            str_name = "<" + str(i + 1) + "번>:" + DATALIST[SIDO_ind][i]['name']
             res_list.append(str_name)
         return res_list
 
@@ -411,9 +427,9 @@ class TKWindow:
             for item in ex_itemElements:
                 explain = item.find("EPreSimpleDesc")
                 if explain is None:
-                    self.info['explain'] = "설명없음"
+                    Detail_inf['explain'] = "설명없음"
                 else:
-                    self.info['explain'] = explain.text
+                    Detail_inf['explain'] = explain.text
         DataList.append(Detail_inf)
         print(DataList)
         res_detail.append('<항목>\n\n'+ DataList[0]['index']+'\n\n')
@@ -516,7 +532,6 @@ class TKWindow:
         i = self.TEXTLIST.curselection()[0]
         NM = self.DATALIST[i]['name']
         self.url_d = userURLBuilder(Detail_url, ServiceKey=Key, SIDO=self.Sido, GUNGU=self.Sigun, RES_NM=NM)
-
         req = requests.get(self.url_d)
         tree = ElementTree.fromstring(req.text)
         itemElements = tree.getiterator("item")
@@ -658,7 +673,5 @@ class TKWindow:
         self.image = ImageTk.PhotoImage(resized)
 
         self.IMAGE.config(image=self.image)
-
-
 
 TKWindow()
