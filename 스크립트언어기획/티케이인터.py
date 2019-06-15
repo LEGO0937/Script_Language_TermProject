@@ -20,6 +20,12 @@ import traceback
 import tkinter.filedialog
 from pprint import pprint
 
+from io import StringIO
+import io
+from lxml.html import parse
+import urllib.request
+from PIL import Image, ImageTk
+
 connect = None
 Detail_url = 'http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceDetail'
 List_url = "http://openapi.tour.go.kr/openapi/service/TourismResourceService/getTourResourceList"
@@ -130,6 +136,7 @@ class TKWindow:
         self.EXPLAIN.place(x=430, y=200)
 
 
+
         # 메일 주소 입력 entry
         self.Mailentry = Entry(window, width=28, borderwidth=10, relief='ridge')
         self.Mailentry.place(x=420,y=580)
@@ -152,6 +159,11 @@ class TKWindow:
         self.IMAGE = Label(window, width=250, height=150, image=self.earth)
         self.IMAGE.place(x=460, y=20)
 
+        #if self.info['posit'] != "NONE":
+
+        self.map_image = self.GetMapImage(40.702147,-74.015794)
+        self.MAP = Label(window, image = self.map_image, width=300, height=300)
+        self.MAP.place(x=400, y=20)
         bot.message_loop(self.handle)
         window.mainloop()
 
@@ -171,6 +183,7 @@ class TKWindow:
             folium.Marker([maplist[0], maplist[1]], popup=self.info['name']).add_to(self.map_osm)
             self.map_osm.save('osm.html')
             os.system("osm.html")
+
     # 시도, 군구 받아 파싱하는 함수
     def Search(self):
         self.Sido = self.SIDO.get()
@@ -599,10 +612,6 @@ class TKWindow:
         self.Search_Image(NM)
 
     def Search_Image(self, NM):
-        from io import StringIO
-        from lxml.html import parse
-        import urllib.request
-        from PIL import Image, ImageTk
         keyword = NM
         url = 'https://www.google.co.kr/search?q=' + keyword + '&source=lnms&tbm=isch&sa=X&ved=0ahUKEwic-taB9IXVAhWDHpQKHXOjC14Q_AUIBigB&biw=1842&bih=990'
         text = requests.get(url).text
@@ -618,6 +627,24 @@ class TKWindow:
         self.image = ImageTk.PhotoImage(resized)
 
         self.IMAGE.config(image=self.image)
+
+
+    def GetMapImage(self,latitude,longitude):
+        BaseURL = 'https://maps.googleapis.com/maps/api/staticmap?center=LATITUDE,LONGITUDE&zoom=13&size=300x300&maptype=roadmap&markers=color:blue%7Clabel:S%LATITUDE,LONGITUDE&key='
+        Key = 'AIzaSyCIwXZ_47Dyl_KmrInmMc_jAjCTsDV3goA'
+        BaseURL = BaseURL.replace('LATITUDE',str(latitude))
+        BaseURL = BaseURL.replace('LONGITUDE', str(longitude))
+        url = BaseURL + Key
+
+        print(url)
+
+        u = urllib.request.urlopen(url)
+        raw_data = u.read()
+        im = Image.open(io.BytesIO(raw_data))
+        image = ImageTk.PhotoImage(im)
+        u.close()
+        return image
+
 
 
 
