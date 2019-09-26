@@ -80,14 +80,16 @@ class TKWindow:
     def __init__(self):
         window = Tk()
         window.title("관광자원프로그램")
-        window.geometry("800x700")
+        window.geometry("850x750")
         self.titleimage = PhotoImage(file="./Image/Title.png")
         TempFont = font.Font(window, size=20, weight='bold', family='Consolas')
         Label(window, width=300, height=100, image=self.titleimage).place(x=20, y=0)
 
         # 시도검색 콤보박스
         self.sido = ['서울특별시', '인천광역시', '부산광역시']
-        self.SIDO = tkinter.ttk.Combobox(window, font=TempFont, width=10, height=15, values=self.sido)
+        self.str = StringVar()
+        self.SIDO = tkinter.ttk.Combobox(window, font=TempFont, width=10, height=15, values=self.sido,
+                                         textvariable=self.str)
         self.SIDO.place(x=25, y=100)
         self.SIDO.set("시도검색")
 
@@ -102,7 +104,7 @@ class TKWindow:
         # self.searchButton = Button(window, text="리스트검색", command=self.Search, font=TempFont_Button)
         self.listimage = PhotoImage(file="./Image/ListSearch.png")
         self.searchButton = Button(window, width=100, height=30,command=self.SearchList, image=self.listimage)
-        self.searchButton.place(x=250, y=165)
+        self.searchButton.place(x=300, y=165)
 
         # 관광자원 검색 앤트리박스
         self.SOURCE = Entry(window, width=25, font=TempFont_Search, borderwidth=12, relief='ridge')
@@ -112,13 +114,13 @@ class TKWindow:
         # 검색의 편리함을 위해 원래 것은 주석처리했다
         # self.Resource_searchButton = Button(window, text="자원검색", command=self.Source_Search, font=TempFont_Button)
         self.sourceimage = PhotoImage(file="./Image/ResourceSearch.png")
-        self.Resource_searchButton = Button(window,width=100, height=30, command=self.Source_Search, image=self.sourceimage)
-        self.Resource_searchButton.place(x=250, y=225)
+        self.Resource_searchButton = Button(window,width=100, height=30, command=self.Source_Search_Only_Seoul, image=self.sourceimage)
+        self.Resource_searchButton.place(x=300, y=225)
 
         # 관광지 리스트 박스
         self.LIST_FONT = tkinter.font.Font(size=20)
         self.TEXTLIST = Listbox(window, width=20, height=10, borderwidth=12, relief='ridge', font=self.LIST_FONT)
-        self.TEXTLIST.place(x=20, y=310)
+        self.TEXTLIST.place(x=20, y=280)
         # 검색의 편리함을 위해 원래 것은 주석처리했다
         # self.TEXTLIST.bind('<<ListboxSelect>>', self.SelectBuild)
         self.TEXTLIST.bind('<<ListboxSelect>>', self.SelectBuild_Only_Seoul)
@@ -138,25 +140,25 @@ class TKWindow:
 
         # 메일 주소 입력 entry
         self.Mailentry = Entry(window, width=28, borderwidth=10, relief='ridge')
-        self.Mailentry.place(x=420,y=580)
+        self.Mailentry.place(x=430,y=660)
 
         # 정보 Gmail 보내는 버튼
         TempFont_Mail = font.Font(window, size=11, weight='bold', family='Consolas')
         self.Emailimage = PhotoImage(file="./Image/EmailSend.png")
         self.Mail = Button(window, command=self.Send_Mail, width=100, height=30, image=self.Emailimage)
-        self.Mail.place(x=640, y=580)
+        self.Mail.place(x=690, y=660)
 
         # 위치 HTML 출력하는 버튼
         self.positimage = PhotoImage(file="./Image/Posit.png")
         self.Position = Button(window, width=100, height=30, command=self.MapOpen, image=self.positimage)
-        self.Position.place(x=420, y=620)
+        self.Position.place(x=430, y=710)
 
         # 이미지 삽입
         # self.IMAGE = Label(window, width=40, height=20)
         # self.IMAGE.place(x=420, y=10)
         self.earth = PhotoImage(file="./Image/sample.png")
-        self.IMAGE = Label(window, width=250, height=150, image=self.earth)
-        self.IMAGE.place(x=460, y=20)
+        self.IMAGE = Label(window, width=270, height=160, image=self.earth)
+        self.IMAGE.place(x=485, y=15)
 
         bot.message_loop(self.handle)
         window.mainloop()
@@ -362,7 +364,7 @@ class TKWindow:
         self.EXPLAIN.insert(1.0, self.DataList[0]['index'])
         self.EXPLAIN.insert(1.0, "\n\n")
         self.EXPLAIN.insert(1.0, "<항목>")
-        self.imageSearch()
+        self.Search_Image(self.Source)
 
     # 리스트를 읽어오는 함수
     def getListData(self, SIDO_param, GUNGU_param):
@@ -670,7 +672,7 @@ class TKWindow:
         img = imgs[3].get('src')
         urllib.request.urlretrieve(img, "./Image/Build.png")
         self.original = Image.open("./Image/Build.png")
-        resized = self.original.resize((250, 150), Image.ANTIALIAS)
+        resized = self.original.resize((270, 160), Image.ANTIALIAS)
         self.image = ImageTk.PhotoImage(resized)
 
         self.IMAGE.config(image=self.image)

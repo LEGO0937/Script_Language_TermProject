@@ -1,12 +1,7 @@
 <!DOCTYPE html>
 <head>    
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    
-        <script>
-            L_NO_TOUCH = false;
-            L_DISABLE_3D = false;
-        </script>
-    
+    <script>L_PREFER_CANVAS=false; L_NO_TOUCH=false; L_DISABLE_3D=false;</script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.4.0/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
@@ -20,63 +15,74 @@
     <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
     <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
     
-            <meta name="viewport" content="width=device-width,
-                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-            <style>
-                #map_02c89ad243e14cfc9bff9c39da9f8828 {
-                    position: relative;
-                    width: 100.0%;
-                    height: 100.0%;
-                    left: 0.0%;
-                    top: 0.0%;
-                }
-            </style>
-        
+    <meta name="viewport" content="width=device-width,
+        initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>#map_775717828a884d08926d6089b831ee23 {
+        position: relative;
+        width: 100.0%;
+        height: 100.0%;
+        left: 0.0%;
+        top: 0.0%;
+        }
+    </style>
 </head>
 <body>    
     
-            <div class="folium-map" id="map_02c89ad243e14cfc9bff9c39da9f8828" ></div>
-        
+    <div class="folium-map" id="map_775717828a884d08926d6089b831ee23" ></div>
 </body>
 <script>    
     
-            var map_02c89ad243e14cfc9bff9c39da9f8828 = L.map(
-                "map_02c89ad243e14cfc9bff9c39da9f8828",
-                {
-                    center: [37.57008888888889, 126.01552222222222],
-                    crs: L.CRS.EPSG3857,
-                    zoom: 13,
-                    zoomControl: true,
-                    preferCanvas: false,
+    
+        var bounds = null;
+    
+
+    var map_775717828a884d08926d6089b831ee23 = L.map(
+        'map_775717828a884d08926d6089b831ee23', {
+        center: [37.57402777777778, 126.988175],
+        zoom: 13,
+        maxBounds: bounds,
+        layers: [],
+        worldCopyJump: false,
+        crs: L.CRS.EPSG3857,
+        zoomControl: true,
+        });
+
+
+    
+    var tile_layer_57debd3cc3424085bc4263c38221f6af = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+        "attribution": null,
+        "detectRetina": false,
+        "maxNativeZoom": 18,
+        "maxZoom": 18,
+        "minZoom": 0,
+        "noWrap": false,
+        "opacity": 1,
+        "subdomains": "abc",
+        "tms": false
+}).addTo(map_775717828a884d08926d6089b831ee23);
+    
+        var marker_87dd3e3bd6d0455aabbfdb5b7d0b7a62 = L.marker(
+            [37.57402777777778, 126.988175],
+            {
+                icon: new L.Icon.Default(),
                 }
-            );
+            ).addTo(map_775717828a884d08926d6089b831ee23);
+        
+    
+            var popup_bea243a312c04ba9adce5fb1f48b6633 = L.popup({maxWidth: '100%'
+            
+            });
 
             
+                var html_849c736d6c844b689a7c77a788ae0000 = $(`<div id="html_849c736d6c844b689a7c77a788ae0000" style="width: 100.0%; height: 100.0%;">종로크라운관광호텔</div>`)[0];
+                popup_bea243a312c04ba9adce5fb1f48b6633.setContent(html_849c736d6c844b689a7c77a788ae0000);
+            
 
-        
-    
-            var tile_layer_d7ac90c8231d498b9b059a1f34b7fa9d = L.tileLayer(
-                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                {"attribution": "Data by \u0026copy; \u003ca href=\"http://openstreetmap.org\"\u003eOpenStreetMap\u003c/a\u003e, under \u003ca href=\"http://www.openstreetmap.org/copyright\"\u003eODbL\u003c/a\u003e.", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
-            ).addTo(map_02c89ad243e14cfc9bff9c39da9f8828);
-        
-    
-            var marker_7897c2810a874c799517abfc34c9bcfe = L.marker(
-                [37.57008888888889, 126.01552222222222],
-                {}
-            ).addTo(map_02c89ad243e14cfc9bff9c39da9f8828);
-        
-    
-        var popup_903fdb2b0c6647048094a14d41b34b3f = L.popup({"maxWidth": "100%"});
+            marker_87dd3e3bd6d0455aabbfdb5b7d0b7a62.bindPopup(popup_bea243a312c04ba9adce5fb1f48b6633)
+            ;
 
+            
         
-            var html_a1312f85ab734000be409252f73260b3 = $(`<div id="html_a1312f85ab734000be409252f73260b3" style="width: 100.0%; height: 100.0%;">삼호관광호텔</div>`)[0];
-            popup_903fdb2b0c6647048094a14d41b34b3f.setContent(html_a1312f85ab734000be409252f73260b3);
-        
-
-        marker_7897c2810a874c799517abfc34c9bcfe.bindPopup(popup_903fdb2b0c6647048094a14d41b34b3f)
-        ;
-
-        
-    
 </script>
